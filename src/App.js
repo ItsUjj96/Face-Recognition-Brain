@@ -8,28 +8,30 @@ import Rank from './components/Rank/Rank';
 import { Component } from 'react';
 
 
+const PAT = '6334d4c0866144dd8b978f5c39f3b23c';
+// Specify the correct user_id/app_id pairings
+// Since you're making inferences outside your app's scope
+const USER_ID = 'ujjwald';
+const APP_ID = 'frontend-app';
+// Change these to whatever model and image URL you want to use
+const MODEL_ID = 'general-image-recognition';
+const MODEL_VERSION_ID = 'aa7f35c01e0642fda5cf400f543e7c40';
+
 class App extends Component {
   constructor() {
     super();
     this.state = {
       input: '',
+      IMAGE_URL: ''
     }
   }
   onInputChange = (event) => {
-    console.log(event.target.value);
+    this.setState({ input: event.target.value });
   }
 
   onButtonSubmit = () => {
-    console.log('click');
-    const PAT = '6334d4c0866144dd8b978f5c39f3b23c';
-    // Specify the correct user_id/app_id pairings
-    // Since you're making inferences outside your app's scope
-    const USER_ID = 'ujjwald';
-    const APP_ID = 'frontend-app';
-    // Change these to whatever model and image URL you want to use
-    const MODEL_ID = 'general-image-recognition';
-    const MODEL_VERSION_ID = 'aa7f35c01e0642fda5cf400f543e7c40';
-    const IMAGE_URL = 'https://samples.clarifai.com/metro-north.jpg';
+    //updating the IMAGE_URL state
+    this.setState({ IMAGE_URL: this.state.input });
 
     ///////////////////////////////////////////////////////////////////////////////////
     // YOU DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE TO RUN THIS EXAMPLE
@@ -44,7 +46,7 @@ class App extends Component {
         {
           "data": {
             "image": {
-              "url": IMAGE_URL
+              "url": this.state.input
             }
           }
         }
@@ -68,17 +70,17 @@ class App extends Component {
       .then(response => response.text())
       .then(result => console.log(result))
       .catch(error => console.log('error', error));
-
   }
 
   render() {
+    const { IMAGE_URL } = this.state;
     return (
       <div className="App">
         <Navigation />
         <Logo />
         <Rank />
         <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition />
+        <FaceRecognition IMAGE_URL={IMAGE_URL} />
       </div>
     );
   }
