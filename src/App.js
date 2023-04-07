@@ -14,16 +14,33 @@ const PAT = '6334d4c0866144dd8b978f5c39f3b23c';
 const USER_ID = 'ujjwald';
 const APP_ID = 'frontend-app';
 // Change these to whatever model and image URL you want to use
-const MODEL_ID = 'general-image-recognition';
-const MODEL_VERSION_ID = 'aa7f35c01e0642fda5cf400f543e7c40';
+const MODEL_ID = 'face-detection';
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
       input: '',
-      IMAGE_URL: ''
+      IMAGE_URL: '',
+      box: {}
     }
+  }
+
+  calculateFaceLocation = (data) => {
+    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+    }
+  }
+
+  displayFaceBox = (box) => {
+    this.setState({box: box})
   }
   onInputChange = (event) => {
     this.setState({ input: event.target.value });
@@ -66,10 +83,12 @@ class App extends Component {
     // https://api.clarifai.com/v2/models/{YOUR_MODEL_ID}/outputs
     // this will default to the latest version_id
 
-    fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", requestOptions)
-      .then(response => response.text())
-      .then(result => console.log(result))
+    fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
+      .then(response => response.json())
+      .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
       .catch(error => console.log('error', error));
+
+
   }
 
   render() {
@@ -80,7 +99,7 @@ class App extends Component {
         <Logo />
         <Rank />
         <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition IMAGE_URL={IMAGE_URL} />
+        <FaceRecognition box = {this.state.box} IMAGE_URL={IMAGE_URL} />
       </div>
     );
   }
