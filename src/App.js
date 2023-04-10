@@ -1,19 +1,19 @@
 import React from 'react';
+import { Component } from 'react';
 import './App.css';
 import Navigation from './components/Navigation/Navigation';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Rank from './components/Rank/Rank';
-import { Component } from 'react';
+import Register from './components/Register/Register';
+import Signin from './components/Signin/Signin';
+import ParticlesBg from 'particles-bg'
 
 
 const PAT = '6334d4c0866144dd8b978f5c39f3b23c';
-// Specify the correct user_id/app_id pairings
-// Since you're making inferences outside your app's scope
 const USER_ID = 'ujjwald';
 const APP_ID = 'frontend-app';
-// Change these to whatever model and image URL you want to use
 const MODEL_ID = 'face-detection';
 
 class App extends Component {
@@ -22,7 +22,9 @@ class App extends Component {
     this.state = {
       input: '',
       IMAGE_URL: '',
-      box: {}
+      box: {},
+      route: 'signin',
+      isSignedIn: false
     }
   }
 
@@ -40,19 +42,14 @@ class App extends Component {
   }
 
   displayFaceBox = (box) => {
-    this.setState({box: box})
+    this.setState({ box: box })
   }
   onInputChange = (event) => {
     this.setState({ input: event.target.value });
   }
 
   onButtonSubmit = () => {
-    //updating the IMAGE_URL state
     this.setState({ IMAGE_URL: this.state.input });
-
-    ///////////////////////////////////////////////////////////////////////////////////
-    // YOU DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE TO RUN THIS EXAMPLE
-    ///////////////////////////////////////////////////////////////////////////////////
 
     const raw = JSON.stringify({
       "user_app_id": {
@@ -78,28 +75,44 @@ class App extends Component {
       },
       body: raw
     };
-
-    // NOTE: MODEL_VERSION_ID is optional, you can also call prediction with the MODEL_ID only
-    // https://api.clarifai.com/v2/models/{YOUR_MODEL_ID}/outputs
-    // this will default to the latest version_id
-
+    
     fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
       .then(response => response.json())
       .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
       .catch(error => console.log('error', error));
-
-
   }
 
+  onRouteChange = (route) => {
+    if (route === 'signout') {
+      this.setState({ isSignedIn: false })
+    } else if (route === 'home') {
+      this.setState({ isSignedIn: true })
+    }
+    this.setState({ route: route });
+  }
+
+
   render() {
-    const { IMAGE_URL } = this.state;
+    const { isSignedIn, IMAGE_URL, route, box } = this.state;
     return (
       <div className="App">
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition box = {this.state.box} IMAGE_URL={IMAGE_URL} />
+        <ParticlesBg color="#ffffff" num={200} type="cobweb" bg={true} />
+        <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
+        {
+          route === 'home' ?
+            <div>
+              <Logo />
+              <Rank />
+              <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
+              <FaceRecognition box={box} IMAGE_URL={IMAGE_URL} />
+            </div>
+            :
+            (
+              route === 'signin' ?
+                <Signin onRouteChange={this.onRouteChange} />
+                : <Register onRouteChange={this.onRouteChange} />
+            )
+        }
       </div>
     );
   }
